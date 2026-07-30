@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="time-off-management-app.Client/time-off-management-app.Client.csproj" />
+  <Project Path="time-off-management-app/time-off-management-app.csproj" />
+</Solution>
