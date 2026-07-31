@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -5,6 +6,7 @@ using time_off_management_app.Client.Pages;
 using time_off_management_app.Components;
 using time_off_management_app.Components.Account;
 using time_off_management_app.Data;
+using time_off_management_app.TicketStoring;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,6 +42,37 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+
+
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+    options.SlidingExpiration = true;
+});
+
+//Keyed stores
+// builder.Services.AddKeyedSingleton<ITicketStore, (implementation class)>("implementation name");
+
+
+builder.Services.AddSingleton<ITicketStoreResolver, TicketStoreResolver>();
+
+var ticketStore = builder.Configuration["Authentication:TicketStore"];
+if (!string.IsNullOrEmpty(ticketStore) && !ticketStore.Equals("Default", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services
+        .AddOptions<CookieAuthenticationOptions>(IdentityConstants.ApplicationScheme)
+        .Configure<ITicketStoreResolver>(
+        (options, resolver) =>
+        {
+            options.SessionStore = resolver.Resolve(ticketStore);
+        });
+}
+
+
+
 
 var app = builder.Build();
 
