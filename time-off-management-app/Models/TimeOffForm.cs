@@ -15,7 +15,7 @@ namespace time_off_management_app.Models
 
         public int ReasonId { get; set; }
         public Reason TimeOffReason { get; set; }
-        public String? OtherReason { get; set; }
+        public String? ReasonDescription { get; set; }
 
         public ApprovalStatus Status { get; set; }
         public String? ApprovedById { get; set; }

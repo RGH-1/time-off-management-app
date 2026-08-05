@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using time_off_management_app.Data;
 
@@ -11,9 +12,11 @@ using time_off_management_app.Data;
 namespace time_off_management_app.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260731140116_AddFullNameToUser")]
+    partial class AddFullNameToUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -188,6 +191,9 @@ namespace time_off_management_app.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("DepartmentId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -205,13 +211,7 @@ namespace time_off_management_app.Migrations
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<string>("ManagerId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("MaxAnnualLeaveDays")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MaxOtherLeaveDays")
+                    b.Property<int>("MaxDaysOff")
                         .HasColumnType("int");
 
                     b.Property<string>("NormalizedEmail")
@@ -232,8 +232,8 @@ namespace time_off_management_app.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("PositionId")
-                        .HasColumnType("int");
+                    b.Property<string>("Position")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
@@ -241,16 +241,13 @@ namespace time_off_management_app.Migrations
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("UnitId")
-                        .HasColumnType("int");
-
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ManagerId");
+                    b.HasIndex("DepartmentId");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -259,10 +256,6 @@ namespace time_off_management_app.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
-
-                    b.HasIndex("PositionId");
-
-                    b.HasIndex("UnitId");
 
                     b.ToTable("AspNetUsers", (string)null);
                 });
@@ -278,30 +271,18 @@ namespace time_off_management_app.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<string>("ManagerId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ManagerId");
+
                     b.ToTable("Department");
-                });
-
-            modelBuilder.Entity("time_off_management_app.Models.Position", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("PositionName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Position");
                 });
 
             modelBuilder.Entity("time_off_management_app.Models.Reason", b =>
@@ -311,13 +292,6 @@ namespace time_off_management_app.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsAnnualLeave")
-                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -348,7 +322,7 @@ namespace time_off_management_app.Migrations
                     b.Property<string>("Note")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ReasonDescription")
+                    b.Property<string>("OtherReason")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("ReasonId")
@@ -373,28 +347,6 @@ namespace time_off_management_app.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("TimeOffForm");
-                });
-
-            modelBuilder.Entity("time_off_management_app.Models.Unit", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("DepartmentId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DepartmentId");
-
-                    b.ToTable("Unit");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -501,23 +453,21 @@ namespace time_off_management_app.Migrations
 
             modelBuilder.Entity("time_off_management_app.Data.ApplicationUser", b =>
                 {
+                    b.HasOne("time_off_management_app.Models.Department", "Department")
+                        .WithMany("Users")
+                        .HasForeignKey("DepartmentId");
+
+                    b.Navigation("Department");
+                });
+
+            modelBuilder.Entity("time_off_management_app.Models.Department", b =>
+                {
                     b.HasOne("time_off_management_app.Data.ApplicationUser", "Manager")
                         .WithMany()
-                        .HasForeignKey("ManagerId");
-
-                    b.HasOne("time_off_management_app.Models.Position", "Position")
-                        .WithMany("Users")
-                        .HasForeignKey("PositionId");
-
-                    b.HasOne("time_off_management_app.Models.Unit", "Unit")
-                        .WithMany("Users")
-                        .HasForeignKey("UnitId");
+                        .HasForeignKey("ManagerId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Manager");
-
-                    b.Navigation("Position");
-
-                    b.Navigation("Unit");
                 });
 
             modelBuilder.Entity("time_off_management_app.Models.TimeOffForm", b =>
@@ -546,17 +496,6 @@ namespace time_off_management_app.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("time_off_management_app.Models.Unit", b =>
-                {
-                    b.HasOne("time_off_management_app.Models.Department", "Department")
-                        .WithMany("Units")
-                        .HasForeignKey("DepartmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Department");
-                });
-
             modelBuilder.Entity("time_off_management_app.Data.ApplicationUser", b =>
                 {
                     b.Navigation("TimeOffForms");
@@ -564,22 +503,12 @@ namespace time_off_management_app.Migrations
 
             modelBuilder.Entity("time_off_management_app.Models.Department", b =>
                 {
-                    b.Navigation("Units");
-                });
-
-            modelBuilder.Entity("time_off_management_app.Models.Position", b =>
-                {
                     b.Navigation("Users");
                 });
 
             modelBuilder.Entity("time_off_management_app.Models.Reason", b =>
                 {
                     b.Navigation("TimeOffForms");
-                });
-
-            modelBuilder.Entity("time_off_management_app.Models.Unit", b =>
-                {
-                    b.Navigation("Users");
                 });
 #pragma warning restore 612, 618
         }

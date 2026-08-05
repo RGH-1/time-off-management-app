@@ -6,11 +6,19 @@ namespace time_off_management_app.Data
     // Add profile data for application users by adding properties to the ApplicationUser class
     public class ApplicationUser : IdentityUser
     {
-        public int? DepartmentId { get; set; }
-        public Department? Department { get; set; }
-        public String? Position { get; set; }
+        public String FullName { get; set; } = string.Empty;
 
-        public int MaxDaysOff { get; set; }
+        public int? UnitId { get; set; }
+        public Unit? Unit { get; set; }
+
+        public int? PositionId { get; set; }
+        public Position? Position { get; set; }
+
+        public int MaxAnnualLeaveDays { get; set; }
+        public int MaxOtherLeaveDays { get; set; }
+
+        public String? ManagerId { get; set; }
+        public ApplicationUser? Manager { get; set; }
 
 
         public List<TimeOffForm> TimeOffForms { get; set; } = new List<TimeOffForm>();

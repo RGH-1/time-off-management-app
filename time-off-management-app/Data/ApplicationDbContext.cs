@@ -12,14 +12,6 @@ namespace time_off_management_app.Data
             base.OnModelCreating(builder);
 
 
-            builder.Entity<Department>()
-                .HasOne(d => d.Manager)
-                .WithMany()
-                .HasForeignKey(d => d.ManagerId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-
-
             builder.Entity<TimeOffForm>()
                 .HasOne(t => t.ApprovedBy)
                 .WithMany()
