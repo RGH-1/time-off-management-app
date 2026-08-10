@@ -3,5 +3,6 @@
     <File Path="README.md" />
   </Folder>
   <Project Path="time-off-management-app.Client/time-off-management-app.Client.csproj" />
+  <Project Path="time-off-management-app.Shared/time-off-management-app.Shared.csproj" Id="66821950-5e03-4c76-aae3-1f48c18e66b9" />
   <Project Path="time-off-management-app/time-off-management-app.csproj" />
 </Solution>

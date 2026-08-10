@@ -1,4 +1,5 @@
 ﻿using time_off_management_app.Data;
+using time_off_management_app.Shared.Enums;
 
 namespace time_off_management_app.Models
 {

@@ -1,4 +1,4 @@
-﻿namespace time_off_management_app.Models
+﻿namespace time_off_management_app.Shared.Enums
 {
     public enum ApprovalStatus
     {

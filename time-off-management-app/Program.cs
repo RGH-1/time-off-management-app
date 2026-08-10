@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Build.Framework;
 using Microsoft.EntityFrameworkCore;
 using time_off_management_app.Client.Pages;
 using time_off_management_app.Components;
 using time_off_management_app.Components.Account;
 using time_off_management_app.Data;
+using time_off_management_app.Services;
 using time_off_management_app.TicketStoring;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -43,13 +45,19 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
+builder.Services.AddHttpClient("Api", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["Api:BaseUrl"]);
+});
 
+builder.Services.AddScoped<TimeOffService>();
+builder.Services.AddScoped<ReasonsService>();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.Cookie.HttpOnly = true;
-    options.Cookie.SameSite = SameSiteMode.Strict;
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+    options.Cookie.SameSite = SameSiteMode.Lax; //Change to Strict
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(60); //Change to 30
     options.SlidingExpiration = true;
 });
 
@@ -72,9 +80,14 @@ if (!string.IsNullOrEmpty(ticketStore) && !ticketStore.Equals("Default", StringC
 }
 
 
-
+builder.Services.AddControllers();
 
 var app = builder.Build();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

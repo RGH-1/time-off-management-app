@@ -6,6 +6,7 @@ namespace time_off_management_app.Data
 {
     public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<ApplicationUser>(options)
     {
+        public DbSet<Reason> Reason { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

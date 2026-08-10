@@ -1,0 +1,131 @@
+﻿@page "/newform"
+
+@using time_off_management_app.Shared.Constants
+@using time_off_management_app.Shared.DTOs.Forms
+@using time_off_management_app.Shared.DTOs.Reasons
+@using time_off_management_app.Shared.DTOs.Users
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+@rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
+
+<PageTitle>New Request</PageTitle>
+
+<h1>Leave Form</h1>
+
+<div class="row">
+	<div class="col-lg-8" id="form_container">		
+		<EditForm Model="Input" method="post" OnValidSubmit="SubmitRequest" FormName="requestTimeOff">
+			<DataAnnotationsValidator />
+			<ValidationSummary class="text-danger" role="alert" />
+			<div class="form-group">
+				<label for="User.FullName">Name:</label>
+				<InputText id="User.FullName" class="form-control" DisplayName="Your Name" @bind-Value="FullName" disabled />
+			</div>
+			
+			@if (Input.DetailedDate)
+			{
+				<div class="form-group">
+					<label for="Input.DateTimeFrom">From:</label>
+					<InputDate class="form-control" id="Input.DateTimeFrom" Type="InputDateType.DateTimeLocal" @bind-Value="Input.DateTimeFrom" />
+				</div>
+				<div class="form-group">
+					<label for="Input.DateTimeTo">To:</label>
+					<InputDate class="form-control" id="Input.DateTimeTo" Type="InputDateType.DateTimeLocal" @bind-Value="Input.DateTimeTo" />
+				</div>
+			}else
+			{
+				<div class="form-group">
+					<label for="Input.DateTimeFrom">From:</label>
+					<InputDate class="form-control" id="Input.DateTimeFrom" Type="InputDateType.Date" @bind-Value="Input.DateTimeFrom" />
+				</div>
+				<div class="form-group">
+					<label for="Input.DateTimeTo">To:</label>
+					<InputDate class="form-control" id="Input.DateTimeTo" Type="InputDateType.Date" @bind-Value="Input.DateTimeTo" />
+				</div>
+			}
+			
+			<div class="form-group">
+				<div class="d-flex align-items-center gap-2 form-switch">
+					<input class="form-check-input" type="checkbox" role="switch" id="Input.DetailedDate" @bind-value="Input.DetailedDate" />
+					<label for="Input.DetailedDate" class="form-check-label">Detailed Time</label>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label for="Input.Reason">Choose Reason:</label>
+				<InputSelect class="form-control" id="Input.Reason" @bind-Value="Input.ReasonCode">
+					<option value="">--- Choose a Reason ---</option>
+					@foreach(var reason in Reasons)
+					{
+						<option value="@reason.Code">@reason.Name</option>
+					}
+				</InputSelect>
+			</div>
+			@if (!string.IsNullOrEmpty(Input.ReasonCode) && Input.ReasonCode == ApplicationConstants.OtherCode)
+			{
+				<div class="form-group">
+					<label for="Input.ReasonDescription">Other Reason: </label>
+					<InputTextArea class="form-control" id="Input.ReasonDescription" @bind-Value="Input.ReasonDescription" />
+				</div>
+			}
+			<button type="submit" class="btn btn-primary">Submit Request</button>
+		</EditForm>
+	</div>
+</div>
+
+
+@code {
+	String FullName = "";
+	TimeOffFormInput Input = new();
+	List<ReasonDto> Reasons = new();
+	ReasonDto Other = new();
+
+
+
+	protected override async Task OnInitializedAsync()
+	{
+		Input.DateTimeFrom = DateTime.Now;
+		Input.DateTimeTo = DateTime.Now;
+
+
+		var resReasons = await Http.GetAsync("api/v1/reasons");
+
+		if (resReasons.IsSuccessStatusCode)
+		{
+			var data = await resReasons.Content.ReadFromJsonAsync<ReasonsListDto>();
+			if(data != null)
+			{
+				Other = data.Other;
+				Reasons = data.Reasons;
+			}
+		}
+
+		var resName = await Http.GetAsync("api/v1/users/fullname");
+
+		if(resName.IsSuccessStatusCode)
+		{
+			var data = await resName.Content.ReadFromJsonAsync<NameDto>();
+			if(data != null)
+			{
+				FullName = data.FullName;
+			}
+		}
+	}
+
+
+
+	public async Task SubmitRequest()
+	{
+		var res = await Http.PostAsJsonAsync<TimeOffFormInput>("/api/v1/forms", Input);
+
+		if(res.IsSuccessStatusCode)
+		{
+			Navigation.NavigateTo("/");
+		}
+	}
+
+
+	
+}
