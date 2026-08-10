@@ -1,0 +1,151 @@
+﻿@page "/"
+
+@using Microsoft.AspNetCore.Authorization
+@using time_off_management_app.Shared.DTOs.Forms
+@using time_off_management_app.Shared.DTOs.Users
+@using time_off_management_app.Shared.Enums
+
+@inject NavigationManager Navigation
+@inject HttpClient Http
+
+@attribute [Authorize]
+@rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
+
+
+<PageTitle>Home</PageTitle>
+
+<h1>Dashboard</h1>
+
+<hr />
+
+@if(dashboard != null)
+{
+	<div class="container">
+		<div class="row">
+			<div class="col-lg-6" style="margin-bottom: 25px">
+				@if (dashboard.UpcomingTimeOff != null && dashboard.UpcomingTimeOff.Any())
+				{
+					<div class="card" style="width: 100%;">
+						<div class="card-header"><h3 style="margin-bottom:20px">Upcoming Time Off</h3></div>
+						<div class="list-group list-group-flush">
+							@foreach (var form in dashboard.UpcomingTimeOff)
+							{
+								<div class="list-group-item">
+									<div class="row align-items-center g-3">
+										<div class="col-md-3">
+											<div class="fw-semibold">
+												@form.Reason.Name
+											</div>
+											<small class="text-body-secondary">Reason</small>
+										</div>
+
+
+										<div class="col-md-3">
+											<div class="fw-semibold">
+												@form.DateTimeFrom.ToShortDateString()
+											</div>
+											<small class="text-body-secondary">From</small>
+										</div>
+
+
+										<div class="col-md-3">
+											<div class="fw-semibold">
+												@form.DateTimeTo.ToShortDateString()
+											</div>
+											<small class="text-body-secondary">To</small>
+										</div>
+
+
+										<div class="col-md-3 text-lg-end">
+											<span class="badge rounded-pill @(form.Status switch{ApprovalStatus.Pending => "bg-secondary", ApprovalStatus.Approved => "bg-success", ApprovalStatus.Denied => "bg-danger", _ => "bg-primary"})">
+												@form.Status
+											</span>
+										</div>
+									</div>
+								</div>
+							}
+						</div>
+					</div>
+				}
+				else
+				{
+					<h4 style="color:gray">None</h4>
+				}
+			</div>
+			<div class="col-lg-6" style="margin-bottom: 25px">
+				<div class="row-lg-6 mb-4">
+					<div class="card">
+						<div class="card-header">
+							<h4 class="mb-0">Remaining Leave</h4>
+						</div>
+
+						<div class="card-body">
+							<div class="row text-center">
+								<div class="col-6">
+									<div class="fs-2 fw-bold">
+										@dashboard.RemainingAnnualLeaveDays
+									</div>
+									<div class="text-body-secondary">
+										Annual Leave
+									</div>
+								</div>
+
+								<div class="col-6">
+									<div class="fs-2 fw-bold">
+										@dashboard.RemainingOtherLeaveDays
+									</div>
+									<div class="text-body-secondary">
+										Other Leave
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="row-lg-6">
+					<div class="col">
+						<h3>Quick Actions</h3>
+						<button class="btn btn-primary" @onclick="ReqTimeOff">Request Time Off</button>
+						<button class="btn btn-secondary" @onclick="MyReqs">My Requests</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+}else
+{
+	<h3>Loading</h3>
+}
+
+
+
+
+@code {
+	UserDashboardDto dashboard;
+
+
+	protected override async Task OnInitializedAsync()
+	{
+		var resForms = await Http.GetAsync("/api/v1/users/dashboard");
+
+		if(resForms.IsSuccessStatusCode)
+		{
+			var data = await resForms.Content.ReadFromJsonAsync<UserDashboardDto>();
+			if(data != null)
+			{
+				dashboard = data;	
+			}
+		}
+	}
+
+
+	public void ReqTimeOff()
+	{
+		Navigation.NavigateTo("newform");
+	}
+
+	public void MyReqs()
+	{
+		Navigation.NavigateTo("/me");
+	}
+}

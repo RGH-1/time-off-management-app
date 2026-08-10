@@ -1,4 +1,5 @@
 ﻿using time_off_management_app.Data;
+using time_off_management_app.Shared.DTOs.Forms;
 using time_off_management_app.Shared.Enums;
 
 namespace time_off_management_app.Models
@@ -23,5 +24,19 @@ namespace time_off_management_app.Models
         public ApplicationUser? ApprovedBy { get; set; }
 
         public String? Note { get; set; }
+
+
+
+        public TimeOffSummaryDto ToTimeOffSummaryDto()
+        {
+            return new TimeOffSummaryDto
+            {
+                Id = this.Id,
+                Reason = this.TimeOffReason.ToReasonDto(),
+                DateTimeFrom = this.DateTimeFrom,
+                DateTimeTo = this.DateTimeTo,
+                Status = this.Status
+            };
+        }
     }
 }
