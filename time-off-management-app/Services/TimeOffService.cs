@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using time_off_management_app.Data;
 using time_off_management_app.Models;
+using time_off_management_app.Shared.Constants;
 using time_off_management_app.Shared.DTOs.Forms;
 using time_off_management_app.Shared.Enums;
 
@@ -58,7 +59,7 @@ namespace time_off_management_app.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<TimeOffSummaryDto>> GetUpcomingTimeOffSummaryAsync(String userId)
+        public async Task<List<TimeOffSummaryDto>> GetUpcomingTimeOffSummaryAsync(String userId, int limit = ApplicationConstants.SummaryLimit)
         {
             var user = await _context.Users
                 .Include(u => u.TimeOffForms)
@@ -66,7 +67,9 @@ namespace time_off_management_app.Services
                 .FirstOrDefaultAsync(u => u.Id.Equals(userId));
 
             var upcomingLeaves = user.TimeOffForms
-                .Where(f => f.DateTimeFrom.ToUniversalTime() > DateTime.UtcNow);
+                .Where(f => f.DateTimeFrom.ToUniversalTime() > DateTime.UtcNow)
+                .OrderBy(f => f.DateTimeFrom)
+                .Take(limit);
 
             List<TimeOffSummaryDto> timeOffsDtos = upcomingLeaves.Select(f => f.ToTimeOffSummaryDto()).ToList();
 

@@ -64,11 +64,36 @@
 			<table class="table table-hover align-middle">
 				<thead>
 					<tr>
-						<th style="width: 11%">Submitted</th>
-						<th style="width: 9%">From</th>
-						<th style="width: 9%">To</th>
-						<th style="width: 9%">Status</th>
-						<th style="width: 8%">Reason</th>
+						<th style="width: 11%">
+							<button class="btn btn-link p-0 text-decoration-none"
+									@onclick='() => SortBy("Submitted")'>
+								Submitted @GetSortIcon("Submitted")
+							</button>
+						</th>
+						<th style="width: 9%">
+							<button class="btn btn-link p-0 text-decoration-none"
+									@onclick='() => SortBy("From")'>
+								From @GetSortIcon("From")
+							</button>
+						</th>
+						<th style="width: 9%">
+							<button class="btn btn-link p-0 text-decoration-none"
+									@onclick='() => SortBy("To")'>
+								To @GetSortIcon("To")
+							</button>
+						</th>
+						<th style="width: 9%">
+							<button class="btn btn-link p-0 text-decoration-none"
+									@onclick='() => SortBy("Status")'>
+								Status @GetSortIcon("Status")
+							</button>
+						</th>
+						<th style="width: 8%">
+							<button class="btn btn-link p-0 text-decoration-none"
+									@onclick='() => SortBy("Reason")'>
+								Reason @GetSortIcon("Reason")
+							</button>
+						</th>
 						<th style="width: 22%">Description</th>
 						<th style="width: 12%">Reviewed By</th>
 						<th style="width: 28%">Note</th>
@@ -151,7 +176,63 @@
 			{
 				Forms = new();
 			}
+
+			SortColumn = "From";
+			SortAscending = false; // because function call negates
+
+			SortBy(SortColumn);
 		}
+	}
+
+	private string? SortColumn { get; set; } = "From";
+	private bool SortAscending { get; set; } = true;
+
+	private void SortBy(string column)
+	{
+		if (SortColumn == column)
+		{
+			// Clicking the same column reverses the direction
+			SortAscending = !SortAscending;
+		}
+		else
+		{
+			// Clicking a new column starts with ascending order
+			SortColumn = column;
+			SortAscending = true;
+		}
+
+		Forms = SortColumn switch
+		{
+			"Submitted" => SortAscending
+				? Forms.OrderBy(f => f.SubmissionDate).ToList()
+				: Forms.OrderByDescending(f => f.SubmissionDate).ToList(),
+
+			"From" => SortAscending
+				? Forms.OrderBy(f => f.DateTimeFrom).ToList()
+				: Forms.OrderByDescending(f => f.DateTimeFrom).ToList(),
+
+			"To" => SortAscending
+				? Forms.OrderBy(f => f.DateTimeTo).ToList()
+				: Forms.OrderByDescending(f => f.DateTimeTo).ToList(),
+
+			"Status" => SortAscending
+				? Forms.OrderBy(f => f.Status).ToList()
+				: Forms.OrderByDescending(f => f.Status).ToList(),
+
+			"Reason" => SortAscending
+				? Forms.OrderBy(f => f.TimeOffReason.Name).ToList()
+				: Forms.OrderByDescending(f => f.TimeOffReason.Name).ToList(),
+
+			_ => Forms
+		};
+	}
+
+	private string GetSortIcon(string column)
+	{
+		if (SortColumn != column)
+			return "";
+
+		return SortAscending ? "↑" : "↓";
 	}
 
 
