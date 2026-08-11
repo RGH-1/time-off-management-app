@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using time_off_management_app.Services;
 using time_off_management_app.Shared.DTOs.Forms;
-using time_off_management_app.Models;
 using time_off_management_app.Data;
 using time_off_management_app.Shared.Enums;
 using Microsoft.AspNetCore.Authorization;
@@ -25,6 +24,29 @@ namespace time_off_management_app.Controllers.V1
             _timeOffService = timeOffService;
             _reasonsService = reasonsService;
         }
+
+
+        [HttpGet("me")]
+        public async Task<IActionResult> GetForms([FromQuery] int year, [FromQuery] ApprovalStatus? status)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if(userId == null)
+            {
+                return Unauthorized();
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if(user == null)
+            {
+                return NotFound();
+            }
+
+            var forms = await _timeOffService.GetForms(userId, year, status);
+
+            return Ok(forms);
+        }
+
 
         [HttpPost]
         public async Task<IActionResult> AddNewForm([FromBody] TimeOffFormInput input)

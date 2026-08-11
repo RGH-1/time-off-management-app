@@ -38,5 +38,23 @@ namespace time_off_management_app.Models
                 Status = this.Status
             };
         }
+
+        public TimeOffFormDto ToTimeOffFormDto()
+        {
+            return new TimeOffFormDto
+            {
+                Id = this.Id,
+                UserId = this.UserId,
+                SubmissionDate = this.SubmissionDate,
+                DateTimeFrom = this.DateTimeFrom,
+                DateTimeTo = this.DateTimeTo,
+                TimeOffReason = this.TimeOffReason.ToReasonDto(),
+                ReasonDescription = this.ReasonDescription,
+                Status = this.Status,
+                ApprovedById = this.ApprovedById,
+                ApprovedByFullName = this.ApprovedBy == null ? null : this.ApprovedBy.FullName,
+                Note = this.Note
+            };
+        }
     }
 }

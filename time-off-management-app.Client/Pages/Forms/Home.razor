@@ -57,7 +57,7 @@
 
 
 										<div class="col-md-3 text-lg-end">
-											<span class="badge rounded-pill @(form.Status switch{ApprovalStatus.Pending => "bg-secondary", ApprovalStatus.Approved => "bg-success", ApprovalStatus.Denied => "bg-danger", _ => "bg-primary"})">
+											<span class="badge rounded-pill @GetStatusClass(form.Status)">
 												@form.Status
 											</span>
 										</div>
@@ -147,5 +147,17 @@
 	public void MyReqs()
 	{
 		Navigation.NavigateTo("/me");
+	}
+
+
+	private string GetStatusClass(ApprovalStatus status)
+	{
+		return status switch
+		{
+			ApprovalStatus.Pending => "bg-secondary",
+			ApprovalStatus.Approved => "bg-success",
+			ApprovalStatus.Denied => "bg-danger",
+			_ => "bg-primary"
+		};
 	}
 }

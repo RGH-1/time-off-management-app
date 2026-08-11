@@ -19,6 +19,25 @@ namespace time_off_management_app.Services
         }
 
 
+        public async Task<List<TimeOffFormDto>> GetForms(String userId, int year, ApprovalStatus? status)
+        {
+            var user = await _context.Users
+                .Include(u => u.TimeOffForms)
+                .ThenInclude(f => f.TimeOffReason)
+                .FirstOrDefaultAsync(u => u.Id.Equals(userId));
+
+            var forms = user.TimeOffForms
+                .Where(f => f.DateTimeFrom.Year == year);
+
+            if(status != null)
+            {
+                forms = forms.Where(f => f.Status == status);
+            }
+
+            return forms.Select(f => f.ToTimeOffFormDto()).ToList();
+        }
+
+
         public async Task AddNewForm(String userId, TimeOffFormInput input, Reason reason)
         {
             var user = await _context.Users.FindAsync(userId);

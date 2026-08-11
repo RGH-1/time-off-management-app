@@ -1,0 +1,168 @@
+﻿@page "/me"
+
+@using Microsoft.AspNetCore.Authorization
+@using time_off_management_app.Shared.Enums
+@using time_off_management_app.Shared.DTOs.Forms
+
+
+@inject HttpClient Http
+
+@attribute [Authorize]
+@rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
+
+
+<PageTitle>Detailed View</PageTitle>
+<div class="container py-4">
+	<div class="d-flex justify-content-between align-items-center mb-4">
+		<h2 class="mb-0">My Leave Forms</h2>
+	</div>
+	
+	<div class="border rounded p-3 mb-4">
+		<div class="row g-3 align-items-end">
+
+			<div class="col-md-4">
+				<label for="year" class="form-label">Year</label>
+				<InputSelect id="year" class="form-select" @bind-Value="SelectedYear">
+					@foreach(var year in Years)
+					{
+						<option value="@year">@year</option>
+					}
+				</InputSelect>
+			</div>
+
+			<div class="col-md-4">
+				<label for="status" class="form-label">Status</label>
+				<InputSelect id="status"
+							 class="form-select"
+							 @bind-Value="SelectedStatus">
+					<option value="" selected>All statuses</option>
+
+					@foreach (var status in Statuses)
+					{
+						<option value="@status">@status</option>
+					}
+				</InputSelect>
+			</div>
+
+			<div class="col-md-4">
+				<button class="btn btn-primary w-100"
+						@onclick="LoadForms">
+					Apply Filters
+				</button>
+			</div>
+		</div>
+	</div>
+
+	@if(Forms.Count == 0)
+	{
+		<div class="text-center text-body-secondary py-5">
+			<p class="mb-0">No leave forms found.</p>
+		</div>
+	}else
+	{
+		<div class="table-responsive">
+			<table class="table table-hover align-middle">
+				<thead>
+					<tr>
+						<th style="width: 11%">Submitted</th>
+						<th style="width: 9%">From</th>
+						<th style="width: 9%">To</th>
+						<th style="width: 9%">Status</th>
+						<th style="width: 8%">Reason</th>
+						<th style="width: 22%">Description</th>
+						<th style="width: 12%">Reviewed By</th>
+						<th style="width: 28%">Note</th>
+					</tr>
+				</thead>
+
+				<tbody>
+					@foreach(var form in Forms)
+					{
+						<tr>
+							<td>@form.SubmissionDate.ToShortDateString()</td>
+
+							<td>@form.DateTimeFrom.ToShortDateString()</td>
+
+							<td>@form.DateTimeTo.ToShortDateString()</td>
+
+							<td>
+								<span class="badge rounded-pill @GetStatusClass(form.Status)">
+									@form.Status
+								</span>
+							</td>
+
+							<td>@form.TimeOffReason.Name</td>
+
+							<td class="text-break">
+								@(string.IsNullOrWhiteSpace(form.ReasonDescription)
+									? "-"
+									: form.ReasonDescription)
+							</td>
+
+							<td>
+								@(string.IsNullOrWhiteSpace(form.ApprovedByFullName)
+									? "-"
+									: form.ApprovedByFullName)
+							</td>
+
+							<td class="text-break">
+								@(string.IsNullOrWhiteSpace(form.Note)
+									? "-"
+									: form.Note)
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	}
+</div>
+
+
+@code {
+	List<int> Years = new();
+	int SelectedYear = 2026;
+
+	List<ApprovalStatus> Statuses = new();
+	ApprovalStatus? SelectedStatus = null;
+
+	List<TimeOffFormDto> Forms = new();
+
+	protected async override Task OnInitializedAsync()
+	{
+		Years = new List<int> { 2026, 2025, 2024, 2023, 2022, 2021, 2020 };
+		Statuses = [ApprovalStatus.Pending, ApprovalStatus.Approved, ApprovalStatus.Denied];
+
+		await LoadForms();
+	}
+
+	public async Task LoadForms()
+	{
+		String statusQuery = SelectedStatus == null ? "" : $"&status={SelectedStatus}";
+		var res = await Http.GetAsync($"api/v1/forms/me?year={SelectedYear}{statusQuery}");
+
+		if(res.IsSuccessStatusCode)
+		{
+			var data = await res.Content.ReadFromJsonAsync<List<TimeOffFormDto>>();
+			if(data != null)
+			{
+				Forms = data;
+			}else
+			{
+				Forms = new();
+			}
+		}
+	}
+
+
+	private string GetStatusClass(ApprovalStatus status)
+	{
+		return status switch
+		{
+			ApprovalStatus.Pending => "bg-secondary",
+			ApprovalStatus.Approved => "bg-success",
+			ApprovalStatus.Denied => "bg-danger",
+			_ => "bg-primary"
+		};
+	}
+}
