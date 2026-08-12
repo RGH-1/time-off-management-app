@@ -71,7 +71,9 @@ namespace time_off_management_app.Controllers.V1
             {
                 FullName = user.FullName,
                 RemainingAnnualLeaveDays = user.MaxAnnualLeaveDays - usedAnnualLeave,
+                MaxAnnualLeaveDays = user.MaxAnnualLeaveDays,
                 RemainingOtherLeaveDays = user.MaxOtherLeaveDays - usedOtherLeave,
+                MaxOtherLeaveDays = user.MaxOtherLeaveDays,
                 UpcomingTimeOff = upcomingLeaves == null ? new() : upcomingLeaves
             };
             return Ok(toReturn);
