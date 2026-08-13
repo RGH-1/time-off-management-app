@@ -149,5 +149,47 @@ namespace time_off_management_app.Services
 
             return forms.Select(f => f.ToTimeOffReviewDto()).ToList();
         }
+
+
+
+
+        public async Task<bool> ReviewForm(int formId, String? Note, ApprovalStatus status)
+        {
+            var form = await _context.TimeOffForm.FirstOrDefaultAsync(f => f.Id == formId);
+
+            if(form == null || form.Status != ApprovalStatus.Pending)
+            {
+                return false;
+            }
+
+            form.Note = Note;
+            form.Status = status;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> ReviewForms(List<ReviewFormDto> forms, ApprovalStatus status)
+        {
+            foreach(var form in forms)
+            {
+                if(form.FormId == null)
+                {
+                    return false;
+                }
+                var toSave = await _context.TimeOffForm.FirstOrDefaultAsync(f => f.Id == form.FormId);
+
+                if(toSave == null || toSave.Status != ApprovalStatus.Pending)
+                {
+                    return false;
+                }
+
+                toSave.Note = form.Note;
+                toSave.Status = status;
+            }
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 }

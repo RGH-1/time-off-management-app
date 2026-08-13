@@ -81,13 +81,13 @@
             <div class="d-flex gap-2">
                 <button class="btn btn-success"
                         disabled="@(!SelectedForms.Any())"
-                        @onclick="ApproveSelected">
+                        @onclick="() => ConfirmBulkReview(true)">
                     Approve
                 </button>
 
                 <button class="btn btn-danger"
                         disabled="@(!SelectedForms.Any())"
-                        @onclick="DenySelected">
+                        @onclick="() => ConfirmBulkReview(false)">
                     Deny
                 </button>
             </div>
@@ -178,12 +178,12 @@
                     <div class="d-flex justify-content-end gap-2 mt-3">
 
                         <button class="btn btn-outline-danger"
-                                @onclick="() => Deny(form)">
+                                @onclick="() => ConfirmReview(form, false)">
                             Deny
                         </button>
 
                         <button class="btn btn-success"
-                                @onclick="() => Approve(form)">
+                                @onclick="() => ConfirmReview(form, true)">
                             Approve
                         </button>
 
@@ -198,6 +198,209 @@ else
 {
     <div class="text-center text-body-secondary py-5">
         <p class="mb-0">No leave forms found.</p>
+    </div>
+}
+
+
+
+
+@if (ShowConfirmationModal && FormToReview != null)
+{
+    <div class="modal fade show d-block"
+         tabindex="-1"
+         role="dialog"
+         style="background-color: rgba(0,0,0,0.5);">
+
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        @(IsApproval ? "Approve Request" : "Deny Request")
+                    </h5>
+
+                    <button type="button"
+                            class="btn-close"
+                            @onclick="CloseConfirmation">
+                    </button>
+                </div>
+
+                <div class="modal-body">
+
+                    <p>
+                        Are you sure you want to
+                        <strong>
+                            @(IsApproval ? "approve" : "deny")
+                        </strong>
+                        this request?
+                    </p>
+
+                    <div class="border rounded p-3">
+                        <div>
+                            <strong>Person:</strong>
+                            @FormToReview.FullName
+                        </div>
+
+                        <div>
+                            <strong>Reason:</strong>
+                            @FormToReview.Reason.Name
+                        </div>
+
+                        <div>
+                            <strong>Dates:</strong>
+                            @FormToReview.DateTimeFrom.ToString("MMM dd, yyyy")
+                            →
+                            @FormToReview.DateTimeTo.ToString("MMM dd, yyyy")
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(FormToReview.Note))
+                    {
+                        <div class="mt-3">
+                            <strong>Review Note:</strong>
+                            <p class="text-body-secondary mb-0">
+                                @FormToReview.Note
+                            </p>
+                        </div>
+                    }
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button"
+                            class="btn btn-secondary"
+                            @onclick="CloseConfirmation">
+                        Cancel
+                    </button>
+
+                    @if (IsApproval)
+                    {
+                        <button type="button"
+                                class="btn btn-success"
+                                @onclick="ConfirmApproval">
+                            Approve
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="button"
+                                class="btn btn-danger"
+                                @onclick="ConfirmDenial">
+                            Deny
+                        </button>
+                    }
+                </div>
+
+            </div>
+        </div>
+    </div>
+}
+
+
+
+@if (ShowBulkConfirmation)
+{
+    <div class="modal fade show d-block"
+         tabindex="-1"
+         role="dialog"
+         style="background-color: rgba(0,0,0,0.5);">
+
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        @(IsBulkApproval
+                            ? $"Approve {FormsToReview.Count} Requests"
+                            : $"Deny {FormsToReview.Count} Requests")
+                    </h5>
+
+                    <button type="button"
+                            class="btn-close"
+                            @onclick="CloseBulkConfirmation">
+                    </button>
+                </div>
+
+                <div class="modal-body">
+
+                    <p>
+                        Are you sure you want to
+                        <strong>
+                            @(IsBulkApproval ? "approve" : "deny")
+                        </strong>
+                        the following
+                        @FormsToReview.Count
+                        @(FormsToReview.Count == 1 ? "request" : "requests")?
+                    </p>
+
+                    <div class="list-group">
+
+                        @foreach (var form in FormsToReview)
+                        {
+                            <div class="list-group-item">
+
+                                <div class="d-flex justify-content-between">
+                                    <strong>
+                                        @form.FullName
+                                    </strong>
+
+                                    <span>
+                                        @form.Reason.Name
+                                    </span>
+                                </div>
+
+                                <small class="text-body-secondary">
+                                    @form.DateTimeFrom.ToString("MMM dd, yyyy")
+                                    →
+                                    @form.DateTimeTo.ToString("MMM dd, yyyy")
+                                </small>
+
+                                @if (!string.IsNullOrWhiteSpace(form.Note))
+                                {
+                                    <div class="mt-1">
+                                        <small>
+                                            <strong>Note:</strong>
+                                            @form.Note
+                                        </small>
+                                    </div>
+                                }
+
+                            </div>
+                        }
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button type="button"
+                            class="btn btn-secondary"
+                            @onclick="CloseBulkConfirmation">
+                        Cancel
+                    </button>
+
+                    @if (IsBulkApproval)
+                    {
+                        <button type="button"
+                                class="btn btn-success"
+                                @onclick="ConfirmBulkApproval">
+                            Approve @FormsToReview.Count
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="button"
+                                class="btn btn-danger"
+                                @onclick="ConfirmBulkDenial">
+                            Deny @FormsToReview.Count
+                        </button>
+                    }
+
+                </div>
+
+            </div>
+        </div>
     </div>
 }
 
@@ -265,17 +468,76 @@ else
                 Forms = new();
             }
         }
+
     }
+
+
+
+
+
+    private bool ShowConfirmationModal;
+    private TimeOffReviewDto? FormToReview;
+    private bool IsApproval;
+
+    private void ConfirmReview(TimeOffReviewDto form, bool approve)
+    {
+        if (form.Status != ApprovalStatus.Pending)
+            return;
+
+        FormToReview = form;
+        IsApproval = approve;
+        ShowConfirmationModal = true;
+    }
+
+    private void CloseConfirmation()
+    {
+        ShowConfirmationModal = false;
+        FormToReview = null;
+    }
+
+
+    private async Task ConfirmApproval()
+    {
+        if (FormToReview == null)
+            return;
+
+        var form = FormToReview;
+
+        CloseConfirmation();
+
+        await Approve(form);
+    }
+
+    private async Task ConfirmDenial()
+    {
+        if (FormToReview == null)
+            return;
+
+        var form = FormToReview;
+
+        CloseConfirmation();
+
+        await Deny(form);
+    }
+
 
     private async Task Approve(TimeOffReviewDto form)
     {
         if (form.Status != ApprovalStatus.Pending)
             return;
 
-        
-        //TODO: add approval on 1 form
 
-        await Task.CompletedTask;
+        ReviewFormDto formDto = new ReviewFormDto
+            {
+                Note = form.Note
+            };
+
+        var res = await Http.PostAsJsonAsync<ReviewFormDto>($"api/v1/forms/{form.Id}/approve", formDto);
+
+        if(res.IsSuccessStatusCode)
+        {
+            await Search();
+        }
     }
 
     private async Task Deny(TimeOffReviewDto form)
@@ -283,33 +545,111 @@ else
         if (form.Status != ApprovalStatus.Pending)
             return;
 
-        // TODO: add denial on 1 form
+        ReviewFormDto formDto = new ReviewFormDto
+        {
+            Note = form.Note
+        };
 
-        await Task.CompletedTask;
+        var res = await Http.PostAsJsonAsync<ReviewFormDto>($"api/v1/forms/{form.Id}/deny", formDto);
+
+        if (res.IsSuccessStatusCode)
+        {
+            await Search();
+        }
     }
 
-    private async Task ApproveSelected()
+
+
+
+
+    private bool ShowBulkConfirmation;
+    private bool IsBulkApproval;
+    private List<TimeOffReviewDto> FormsToReview = new();
+
+    private void ConfirmBulkReview(bool approve)
     {
-        var selectedForms = SelectedForms.ToList();
+        var selected = SelectedForms.ToList();
+
+        if (selected.Count == 0)
+            return;
+
+        FormsToReview = selected;
+        IsBulkApproval = approve;
+        ShowBulkConfirmation = true;
+    }
+
+    private void CloseBulkConfirmation()
+    {
+        ShowBulkConfirmation = false;
+        FormsToReview.Clear();
+    }
+
+
+    private async Task ConfirmBulkApproval()
+    {
+        if (FormsToReview.Count == 0)
+            return;
+
+        var forms = FormsToReview.ToList();
+
+        CloseBulkConfirmation();
+
+        await ApproveSelected(forms);
+    }
+
+    private async Task ConfirmBulkDenial()
+    {
+        if (FormsToReview.Count == 0)
+            return;
+
+        var forms = FormsToReview.ToList();
+
+        CloseBulkConfirmation();
+
+        await DenySelected(forms);
+    }
+
+
+    private async Task ApproveSelected(List<TimeOffReviewDto> forms)
+    {
+        var selectedForms = forms;
 
         if (selectedForms.Count == 0)
             return;
 
-        // TODO: add approval on multiple forms
+        var formsDto = selectedForms.Select(f => new ReviewFormDto
+            {
+                FormId = f.Id,
+                Note = f.Note
+            }).ToList();
 
-        await Task.CompletedTask;
+        var res = await Http.PostAsJsonAsync<List<ReviewFormDto>>($"api/v1/forms/approve", formsDto);
+
+        if (res.IsSuccessStatusCode)
+        {
+            await Search();
+        }
     }
 
-    private async Task DenySelected()
+    private async Task DenySelected(List<TimeOffReviewDto> forms)
     {
-        var selectedForms = SelectedForms.ToList();
+        var selectedForms = forms;
 
         if (selectedForms.Count == 0)
             return;
 
-        // TODO: add denial on multiple forms
+        var formsDto = selectedForms.Select(f => new ReviewFormDto
+        {
+            FormId = f.Id,
+            Note = f.Note
+        }).ToList();
 
-        await Task.CompletedTask;
+        var res = await Http.PostAsJsonAsync<List<ReviewFormDto>>($"api/v1/forms/deny", formsDto);
+
+        if (res.IsSuccessStatusCode)
+        {
+            await Search();
+        }
     }
 
 

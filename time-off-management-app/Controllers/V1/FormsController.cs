@@ -30,14 +30,14 @@ namespace time_off_management_app.Controllers.V1
         public async Task<IActionResult> GetForms([FromQuery] int year, [FromQuery] ApprovalStatus? status)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if(userId == null)
+            if (userId == null)
             {
                 return Unauthorized();
             }
 
             var user = await _userManager.FindByIdAsync(userId);
 
-            if(user == null)
+            if (user == null)
             {
                 return NotFound();
             }
@@ -52,21 +52,21 @@ namespace time_off_management_app.Controllers.V1
         public async Task<IActionResult> AddNewForm([FromBody] TimeOffFormInput input)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if(userId == null)
+            if (userId == null)
             {
                 return Unauthorized();
             }
 
             var user = await _userManager.FindByIdAsync(userId);
 
-            if(user == null)
+            if (user == null)
             {
                 return NotFound();
             }
 
             var reason = await _reasonsService.GetReasonByCodeAsync(input.ReasonCode);
 
-            if(reason == null)
+            if (reason == null)
             {
                 return NotFound("Invalid Reason Code");
             }
@@ -95,6 +95,127 @@ namespace time_off_management_app.Controllers.V1
             var forms = await _timeOffService.GetReviewFormsAsync(userId, year, search, status);
 
             return Ok(forms);
+        }
+
+
+
+        [HttpPost("{id}/approve")]
+        public async Task<IActionResult> Approve(int id, [FromBody] ReviewFormDto input)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            //TODO: check if user can approve form. Return forbidden if not
+
+            var success = await _timeOffService.ReviewForm(id, input.Note, ApprovalStatus.Approved);
+
+            if(success)
+            {
+                return NoContent();
+            }else
+            {
+                return BadRequest("Form does not exist or is not pending");
+            }
+        }
+
+        [HttpPost("{id}/deny")]
+        public async Task<IActionResult> Deny(int id, [FromBody] ReviewFormDto input)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            //TODO: check if user can deny form. Return forbidden if not
+
+            var success = await _timeOffService.ReviewForm(id, input.Note, ApprovalStatus.Denied);
+
+            if (success)
+            {
+                return NoContent();
+            }
+            else
+            {
+                return BadRequest("Form does not exist or is not pending");
+            }
+        }
+
+
+        [HttpPost("approve")]
+        public async Task<IActionResult> ApproveMulti([FromBody] List<ReviewFormDto> input)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            //TODO: check if user can approve each form. Return Forbidden if not
+
+            var success = await _timeOffService.ReviewForms(input, ApprovalStatus.Approved);
+
+            if(success)
+            {
+                return NoContent();
+            }else
+            {
+                return BadRequest("Bad input or form doesn't exist");
+            }
+        }
+
+        [HttpPost("deny")]
+        public async Task<IActionResult> DenyMulti([FromBody] List<ReviewFormDto> input)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            //TODO: check if user can approve each form. Return Forbidden if not
+
+            var success = await _timeOffService.ReviewForms(input, ApprovalStatus.Denied);
+
+            if (success)
+            {
+                return NoContent();
+            }
+            else
+            {
+                return BadRequest("Bad input or form doesn't exist");
+            }
         }
     }
 }
