@@ -56,5 +56,21 @@ namespace time_off_management_app.Models
                 Note = this.Note
             };
         }
+
+        public TimeOffReviewDto ToTimeOffReviewDto()
+        {
+            return new TimeOffReviewDto
+            {
+                Id = this.Id,
+                FullName = User.FullName,
+                DateTimeFrom = this.DateTimeFrom,
+                DateTimeTo = this.DateTimeTo,
+                Reason = this.TimeOffReason.ToReasonDto(),
+                ReasonDescription = ReasonDescription,
+                Status = this.Status,
+                Note = this.Note,
+                Selected = false
+            };
+        }
     }
 }

@@ -75,5 +75,26 @@ namespace time_off_management_app.Controllers.V1
 
             return Created();
         }
+
+        [HttpGet("review")]
+        public async Task<IActionResult> GetManagedForms([FromQuery] int year, [FromQuery] String? search, [FromQuery] ApprovalStatus? status)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            var forms = await _timeOffService.GetReviewFormsAsync(userId, year, search, status);
+
+            return Ok(forms);
+        }
     }
 }

@@ -108,5 +108,46 @@ namespace time_off_management_app.Services
 
             return approvedRequestsCurYear;
         }
+
+
+        public async Task<List<TimeOffReviewDto>> GetReviewFormsAsync(String userId, int year, String? search, ApprovalStatus? status)
+        {
+            var user = await _context.Users
+                .Include(u => u.Position)
+                .Include(u => u.Unit)
+                .FirstOrDefaultAsync(u => u.Id.Equals(userId));
+
+            if(user!.Unit == null || user.Position == null)
+            {
+                return new();
+            }
+
+            var higherLevelDepartmentUsers = _context.Users
+                .Where(u => u.Unit != null && u.Unit.DepartmentId == user.Unit.DepartmentId)
+                .Where(u => u.Position != null && u.Position.Level > user.Position.Level);
+                
+
+            if (!String.IsNullOrEmpty(search))
+            {
+                higherLevelDepartmentUsers = higherLevelDepartmentUsers.Where(u => EF.Functions.Like(u.FullName, $"%{search}%"));
+            }
+
+            higherLevelDepartmentUsers = higherLevelDepartmentUsers
+                .Include(u => u.TimeOffForms)
+                .ThenInclude(f => f.TimeOffReason);
+
+            var users = await higherLevelDepartmentUsers.ToListAsync();
+
+            var forms = users
+                .SelectMany(u => u.TimeOffForms)
+                .Where(f => f.DateTimeFrom.Year == year);
+
+            if(status != null)
+            {
+                forms = forms.Where(f => f.Status == status);
+            }
+
+            return forms.Select(f => f.ToTimeOffReviewDto()).ToList();
+        }
     }
 }

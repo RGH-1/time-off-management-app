@@ -2,6 +2,7 @@
 
 @using Microsoft.AspNetCore.Authorization
 @using time_off_management_app.Shared.Enums
+@using time_off_management_app.Shared.Constants
 @using time_off_management_app.Shared.DTOs.Forms
 
 
@@ -23,7 +24,7 @@
 			<div class="col-md-4">
 				<label for="year" class="form-label">Year</label>
 				<InputSelect id="year" class="form-select" @bind-Value="SelectedYear">
-					@foreach(var year in Years)
+					@for(int year = ApplicationConstants.CurrentYear; year >= ApplicationConstants.StartingYear; year--)
 					{
 						<option value="@year">@year</option>
 					}
@@ -145,8 +146,7 @@
 
 
 @code {
-	List<int> Years = new();
-	int SelectedYear = 2026;
+	int SelectedYear = ApplicationConstants.CurrentYear;
 
 	List<ApprovalStatus> Statuses = new();
 	ApprovalStatus? SelectedStatus = null;
@@ -155,8 +155,7 @@
 
 	protected async override Task OnInitializedAsync()
 	{
-		Years = new List<int> { 2026, 2025, 2024, 2023, 2022, 2021, 2020 };
-		Statuses = [ApprovalStatus.Pending, ApprovalStatus.Approved, ApprovalStatus.Denied];
+		Statuses = ApplicationConstants.ApprovalStatusList;
 
 		await LoadForms();
 	}
