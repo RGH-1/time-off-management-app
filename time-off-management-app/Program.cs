@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Build.Framework;
 using Microsoft.EntityFrameworkCore;
+using time_off_management_app.Authentication;
 using time_off_management_app.Client.Pages;
 using time_off_management_app.Components;
 using time_off_management_app.Components.Account;
@@ -27,6 +29,9 @@ builder.Services.AddAuthentication(options =>
         options.DefaultScheme = IdentityConstants.ApplicationScheme;
         options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
     })
+    .AddScheme<AuthenticationSchemeOptions, ApiKeyAuthenticationHandler>(
+    "ApiKey",
+    options => { })
     .AddIdentityCookies();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
@@ -52,6 +57,7 @@ builder.Services.AddHttpClient("Api", client =>
 
 builder.Services.AddScoped<TimeOffService>();
 builder.Services.AddScoped<ReasonsService>();
+builder.Services.AddScoped<ApiKeyService>();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
