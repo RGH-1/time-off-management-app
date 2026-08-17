@@ -8,6 +8,7 @@ namespace time_off_management_app.Data
     {
         public DbSet<Reason> Reason { get; set; }
         public DbSet<TimeOffForm> TimeOffForm { get; set; }
+        public DbSet<ApiKey> ApiKeys { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
