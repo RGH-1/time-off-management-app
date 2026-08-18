@@ -76,6 +76,7 @@ namespace time_off_management_app.Controllers.V1
             return Created();
         }
 
+        [Authorize(Policy = "CanReview")]
         [HttpGet("review")]
         public async Task<IActionResult> GetManagedForms([FromQuery] int year, [FromQuery] String? search, [FromQuery] ApprovalStatus? status)
         {
@@ -99,6 +100,7 @@ namespace time_off_management_app.Controllers.V1
 
 
 
+        [Authorize(Policy = "CanReview")]
         [HttpPost("{id}/approve")]
         public async Task<IActionResult> Approve(int id, [FromBody] ReviewFormDto input)
         {
@@ -128,6 +130,7 @@ namespace time_off_management_app.Controllers.V1
             }
         }
 
+        [Authorize(Policy = "CanReview")]
         [HttpPost("{id}/deny")]
         public async Task<IActionResult> Deny(int id, [FromBody] ReviewFormDto input)
         {
@@ -159,6 +162,7 @@ namespace time_off_management_app.Controllers.V1
         }
 
 
+        [Authorize(Policy = "CanReview")]
         [HttpPost("approve")]
         public async Task<IActionResult> ApproveMulti([FromBody] List<ReviewFormDto> input)
         {
@@ -188,6 +192,7 @@ namespace time_off_management_app.Controllers.V1
             }
         }
 
+        [Authorize(Policy = "CanReview")]
         [HttpPost("deny")]
         public async Task<IActionResult> DenyMulti([FromBody] List<ReviewFormDto> input)
         {

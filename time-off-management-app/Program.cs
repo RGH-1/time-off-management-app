@@ -2,14 +2,13 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Build.Framework;
 using Microsoft.EntityFrameworkCore;
 using time_off_management_app.Authentication;
-using time_off_management_app.Client.Pages;
 using time_off_management_app.Components;
 using time_off_management_app.Components.Account;
 using time_off_management_app.Data;
 using time_off_management_app.Services;
+using time_off_management_app.Shared.Constants;
 using time_off_management_app.TicketStoring;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -33,6 +32,16 @@ builder.Services.AddAuthentication(options =>
     "ApiKey",
     options => { })
     .AddIdentityCookies();
+
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("CanReview", policy =>
+    {
+        policy.RequireClaim(Permissions.Type, Permissions.FormsReview, Permissions.FormsReviewAll);
+    });
+});
+
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>

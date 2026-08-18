@@ -8,7 +8,7 @@
 
 @inject HttpClient Http
 
-@attribute [Authorize]
+@attribute [Authorize(Policy = "CanReview")]
 @rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
 
 

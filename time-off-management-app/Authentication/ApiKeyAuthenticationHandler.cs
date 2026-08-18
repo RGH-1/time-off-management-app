@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using time_off_management_app.Services;
+using time_off_management_app.Shared.Constants;
 
 namespace time_off_management_app.Authentication
 {
@@ -22,7 +23,7 @@ namespace time_off_management_app.Authentication
 
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
-            if(!Request.Headers.TryGetValue("Company-API-Key", out var apiKeyHeader))
+            if(!Request.Headers.TryGetValue(ApplicationConstants.HeaderName, out var apiKeyHeader))
             {
                 return AuthenticateResult.NoResult();
             }
@@ -41,7 +42,7 @@ namespace time_off_management_app.Authentication
                 return AuthenticateResult.Fail("Invalid Key");
             }
 
-            var claims = new List<Claim> 
+            var claims = new List<Claim>
             {
                 new Claim(
                     ClaimTypes.NameIdentifier,
@@ -50,6 +51,14 @@ namespace time_off_management_app.Authentication
                 new Claim(
                     ClaimTypes.Name,
                     apiKeyRecord.Name),
+
+                new Claim(
+                    Permissions.Type,
+                    Permissions.FormsViewAll),
+
+                new Claim(
+                    Permissions.Type,
+                    Permissions.UsersView),
 
                 new Claim(
                     "auth_method",
