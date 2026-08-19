@@ -193,117 +193,117 @@ namespace time_off_management_app.Controllers.V1
         }
 
 
-        [Authorize(Policy = "CanReview")]
-        [HttpPost("approve")]
-        public async Task<IActionResult> ApproveMulti([FromBody] List<ReviewFormDto> input)
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId == null)
-            {
-                return Unauthorized();
-            }
+        //[Authorize(Policy = "CanReview")]
+        //[HttpPost("approve")]
+        //public async Task<IActionResult> ApproveMulti([FromBody] List<ReviewFormDto> input)
+        //{
+        //    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        //    if (userId == null)
+        //    {
+        //        return Unauthorized();
+        //    }
 
-            var user = await _userManager.FindByIdAsync(userId);
+        //    var user = await _userManager.FindByIdAsync(userId);
 
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-
-
-            if (!User.HasClaim(Permissions.Type, Permissions.FormsReviewAll))
-            {
-                var forms = await _timeOffService.GetReviewFormsAsync(userId, ApplicationConstants.CurrentYear, null, null);
-                var ids = forms.Select(f => f.Id).ToHashSet();
-
-                foreach (var form in input)
-                {
-                    if (form.FormId == null)
-                    {
-                        return BadRequest("Missing Id in one of the forms");
-                    }
-                    if (!ids.Contains((int)form.FormId!))
-                    {
-                        return Forbid($"User doesn't have the right to review form {form.FormId}");
-                    }
-                    var valres = await _timeOffService.VerifyReviewRightsAsync(userId, (int)form.FormId, forms);
-
-                    if (!valres.Success)
-                    {
-                        return Forbid(valres.Reason!);
-                    }
-                }
-            }
+        //    if (user == null)
+        //    {
+        //        return NotFound();
+        //    }
 
 
 
-            var success = await _timeOffService.ReviewForms(input, ApprovalStatus.Approved);
+        //    if (!User.HasClaim(Permissions.Type, Permissions.FormsReviewAll))
+        //    {
+        //        var forms = await _timeOffService.GetReviewFormsAsync(userId, ApplicationConstants.CurrentYear, null, null);
+        //        var ids = forms.Select(f => f.Id).ToHashSet();
 
-            if(success)
-            {
-                return NoContent();
-            }else
-            {
-                return BadRequest("Bad input or form doesn't exist");
-            }
-        }
+        //        foreach (var form in input)
+        //        {
+        //            if (form.FormId == null)
+        //            {
+        //                return BadRequest("Missing Id in one of the forms");
+        //            }
+        //            if (!ids.Contains((int)form.FormId!))
+        //            {
+        //                return Forbid($"User doesn't have the right to review form {form.FormId}");
+        //            }
+        //            var valres = await _timeOffService.VerifyReviewRightsAsync(userId, (int)form.FormId, forms);
 
-        [Authorize(Policy = "CanReview")]
-        [HttpPost("deny")]
-        public async Task<IActionResult> DenyMulti([FromBody] List<ReviewFormDto> input)
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId == null)
-            {
-                return Unauthorized();
-            }
-
-            var user = await _userManager.FindByIdAsync(userId);
-
-            if (user == null)
-            {
-                return NotFound();
-            }
+        //            if (!valres.Success)
+        //            {
+        //                return Forbid(valres.Reason!);
+        //            }
+        //        }
+        //    }
 
 
 
-            if (!User.HasClaim(Permissions.Type, Permissions.FormsReviewAll))
-            {
-                var forms = await _timeOffService.GetReviewFormsAsync(userId, ApplicationConstants.CurrentYear, null, null);
-                var ids = forms.Select(f => f.Id).ToHashSet();
+        //    var success = await _timeOffService.ReviewForms(input, ApprovalStatus.Approved);
 
-                foreach (var form in input)
-                {
-                    if (form.FormId == null)
-                    {
-                        return BadRequest("Missing Id in one of the forms");
-                    }
-                    if (!ids.Contains((int)form.FormId!))
-                    {
-                        return Forbid($"User doesn't have the right to review form {form.FormId}");
-                    }
-                    var valres = await _timeOffService.VerifyReviewRightsAsync(userId, (int)form.FormId, forms);
+        //    if(success)
+        //    {
+        //        return NoContent();
+        //    }else
+        //    {
+        //        return BadRequest("Bad input or form doesn't exist");
+        //    }
+        //}
 
-                    if (!valres.Success)
-                    {
-                        return Forbid(valres.Reason!);
-                    }
-                }
-            }
+        //[Authorize(Policy = "CanReview")]
+        //[HttpPost("deny")]
+        //public async Task<IActionResult> DenyMulti([FromBody] List<ReviewFormDto> input)
+        //{
+        //    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        //    if (userId == null)
+        //    {
+        //        return Unauthorized();
+        //    }
+
+        //    var user = await _userManager.FindByIdAsync(userId);
+
+        //    if (user == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+
+
+        //    if (!User.HasClaim(Permissions.Type, Permissions.FormsReviewAll))
+        //    {
+        //        var forms = await _timeOffService.GetReviewFormsAsync(userId, ApplicationConstants.CurrentYear, null, null);
+        //        var ids = forms.Select(f => f.Id).ToHashSet();
+
+        //        foreach (var form in input)
+        //        {
+        //            if (form.FormId == null)
+        //            {
+        //                return BadRequest("Missing Id in one of the forms");
+        //            }
+        //            if (!ids.Contains((int)form.FormId!))
+        //            {
+        //                return Forbid($"User doesn't have the right to review form {form.FormId}");
+        //            }
+        //            var valres = await _timeOffService.VerifyReviewRightsAsync(userId, (int)form.FormId, forms);
+
+        //            if (!valres.Success)
+        //            {
+        //                return Forbid(valres.Reason!);
+        //            }
+        //        }
+        //    }
             
 
 
-            var success = await _timeOffService.ReviewForms(input, ApprovalStatus.Denied);
+        //    var success = await _timeOffService.ReviewForms(input, ApprovalStatus.Denied);
 
-            if (success)
-            {
-                return NoContent();
-            }
-            else
-            {
-                return BadRequest("Bad input or form doesn't exist");
-            }
-        }
+        //    if (success)
+        //    {
+        //        return NoContent();
+        //    }
+        //    else
+        //    {
+        //        return BadRequest("Bad input or form doesn't exist");
+        //    }
+        //}
     }
 }

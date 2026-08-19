@@ -69,7 +69,7 @@
 @if (Forms.Any())
 {
     <div class="border rounded p-3 mb-3">
-        <div class="d-flex align-items-center justify-content-between mb-3">
+        @* <div class="d-flex align-items-center justify-content-between mb-3">
 
             <div>
                 <InputCheckbox @bind-Value="SelectAll" />
@@ -92,7 +92,7 @@
                 </button>
             </div>
 
-        </div>
+        </div> *@
 
         @foreach (var form in Forms)
         {
@@ -298,7 +298,7 @@ else
 
 
 
-@if (ShowBulkConfirmation)
+@* @if (ShowBulkConfirmation)
 {
     <div class="modal fade show d-block"
          tabindex="-1"
@@ -402,7 +402,7 @@ else
             </div>
         </div>
     </div>
-}
+} *@
 
 
 
@@ -416,25 +416,25 @@ else
     ApprovalStatus? SelectedStatus = ApprovalStatus.Pending;
 
 
-    private bool SelectAll
-    {
-        get => Forms
-            .Where(f => f.Status == ApprovalStatus.Pending)
-            .All(f => f.Selected);
+    // private bool SelectAll
+    // {
+    //     get => Forms
+    //         .Where(f => f.Status == ApprovalStatus.Pending)
+    //         .All(f => f.Selected);
 
-        set
-        {
-            foreach (var form in Forms.Where(f => f.Status == ApprovalStatus.Pending))
-            {
-                form.Selected = value;
-            }
-        }
-    }
+    //     set
+    //     {
+    //         foreach (var form in Forms.Where(f => f.Status == ApprovalStatus.Pending))
+    //         {
+    //             form.Selected = value;
+    //         }
+    //     }
+    // }
 
-    private List<TimeOffReviewDto> SelectedForms =>
-        Forms.Where(f =>
-            f.Status == ApprovalStatus.Pending &&
-            f.Selected).ToList();
+    // private List<TimeOffReviewDto> SelectedForms =>
+    //     Forms.Where(f =>
+    //         f.Status == ApprovalStatus.Pending &&
+    //         f.Selected).ToList();
 
 
 
@@ -562,95 +562,95 @@ else
 
 
 
-    private bool ShowBulkConfirmation;
-    private bool IsBulkApproval;
-    private List<TimeOffReviewDto> FormsToReview = new();
+    // private bool ShowBulkConfirmation;
+    // private bool IsBulkApproval;
+    // private List<TimeOffReviewDto> FormsToReview = new();
 
-    private void ConfirmBulkReview(bool approve)
-    {
-        var selected = SelectedForms.ToList();
+    // private void ConfirmBulkReview(bool approve)
+    // {
+    //     var selected = SelectedForms.ToList();
 
-        if (selected.Count == 0)
-            return;
+    //     if (selected.Count == 0)
+    //         return;
 
-        FormsToReview = selected;
-        IsBulkApproval = approve;
-        ShowBulkConfirmation = true;
-    }
+    //     FormsToReview = selected;
+    //     IsBulkApproval = approve;
+    //     ShowBulkConfirmation = true;
+    // }
 
-    private void CloseBulkConfirmation()
-    {
-        ShowBulkConfirmation = false;
-        FormsToReview.Clear();
-    }
-
-
-    private async Task ConfirmBulkApproval()
-    {
-        if (FormsToReview.Count == 0)
-            return;
-
-        var forms = FormsToReview.ToList();
-
-        CloseBulkConfirmation();
-
-        await ApproveSelected(forms);
-    }
-
-    private async Task ConfirmBulkDenial()
-    {
-        if (FormsToReview.Count == 0)
-            return;
-
-        var forms = FormsToReview.ToList();
-
-        CloseBulkConfirmation();
-
-        await DenySelected(forms);
-    }
+    // private void CloseBulkConfirmation()
+    // {
+    //     ShowBulkConfirmation = false;
+    //     FormsToReview.Clear();
+    // }
 
 
-    private async Task ApproveSelected(List<TimeOffReviewDto> forms)
-    {
-        var selectedForms = forms;
+    // private async Task ConfirmBulkApproval()
+    // {
+    //     if (FormsToReview.Count == 0)
+    //         return;
 
-        if (selectedForms.Count == 0)
-            return;
+    //     var forms = FormsToReview.ToList();
 
-        var formsDto = selectedForms.Select(f => new ReviewFormDto
-            {
-                FormId = f.Id,
-                Note = f.Note
-            }).ToList();
+    //     CloseBulkConfirmation();
 
-        var res = await Http.PostAsJsonAsync<List<ReviewFormDto>>($"api/v1/forms/approve", formsDto);
+    //     await ApproveSelected(forms);
+    // }
 
-        if (res.IsSuccessStatusCode)
-        {
-            await Search();
-        }
-    }
+    // private async Task ConfirmBulkDenial()
+    // {
+    //     if (FormsToReview.Count == 0)
+    //         return;
 
-    private async Task DenySelected(List<TimeOffReviewDto> forms)
-    {
-        var selectedForms = forms;
+    //     var forms = FormsToReview.ToList();
 
-        if (selectedForms.Count == 0)
-            return;
+    //     CloseBulkConfirmation();
 
-        var formsDto = selectedForms.Select(f => new ReviewFormDto
-        {
-            FormId = f.Id,
-            Note = f.Note
-        }).ToList();
+    //     await DenySelected(forms);
+    // }
 
-        var res = await Http.PostAsJsonAsync<List<ReviewFormDto>>($"api/v1/forms/deny", formsDto);
 
-        if (res.IsSuccessStatusCode)
-        {
-            await Search();
-        }
-    }
+    // private async Task ApproveSelected(List<TimeOffReviewDto> forms)
+    // {
+    //     var selectedForms = forms;
+
+    //     if (selectedForms.Count == 0)
+    //         return;
+
+    //     var formsDto = selectedForms.Select(f => new ReviewFormDto
+    //         {
+    //             FormId = f.Id,
+    //             Note = f.Note
+    //         }).ToList();
+
+    //     var res = await Http.PostAsJsonAsync<List<ReviewFormDto>>($"api/v1/forms/approve", formsDto);
+
+    //     if (res.IsSuccessStatusCode)
+    //     {
+    //         await Search();
+    //     }
+    // }
+
+    // private async Task DenySelected(List<TimeOffReviewDto> forms)
+    // {
+    //     var selectedForms = forms;
+
+    //     if (selectedForms.Count == 0)
+    //         return;
+
+    //     var formsDto = selectedForms.Select(f => new ReviewFormDto
+    //     {
+    //         FormId = f.Id,
+    //         Note = f.Note
+    //     }).ToList();
+
+    //     var res = await Http.PostAsJsonAsync<List<ReviewFormDto>>($"api/v1/forms/deny", formsDto);
+
+    //     if (res.IsSuccessStatusCode)
+    //     {
+    //         await Search();
+    //     }
+    // }
 
 
     private string GetStatusClass(ApprovalStatus status)
