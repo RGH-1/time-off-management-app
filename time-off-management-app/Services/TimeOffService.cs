@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 using time_off_management_app.Data;
 using time_off_management_app.Models;
 using time_off_management_app.Shared.Constants;
 using time_off_management_app.Shared.DTOs.Forms;
 using time_off_management_app.Shared.Enums;
+using time_off_management_app.Validation;
 
 namespace time_off_management_app.Services
 {
@@ -110,7 +112,7 @@ namespace time_off_management_app.Services
         }
 
 
-        public async Task<List<TimeOffReviewDto>> GetReviewFormsAsync(String userId, int year, String? search, ApprovalStatus? status)
+        public async Task<List<TimeOffReviewDto>> GetReviewFormsAsync(String userId, int year, String? search, ApprovalStatus? status, bool canReviewAll = false)
         {
             var user = await _context.Users
                 .Include(u => u.Position)
@@ -122,9 +124,14 @@ namespace time_off_management_app.Services
                 return new();
             }
 
-            var higherLevelDepartmentUsers = _context.Users
-                .Where(u => u.Unit != null && u.Unit.DepartmentId == user.Unit.DepartmentId)
-                .Where(u => u.Position != null && u.Position.Level > user.Position.Level);
+            var higherLevelDepartmentUsers = _context.Users.Where(u => true);
+            
+            if(!canReviewAll)
+            {
+                higherLevelDepartmentUsers = higherLevelDepartmentUsers
+                    .Where(u => u.Unit != null && u.Unit.DepartmentId == user.Unit.DepartmentId)
+                    .Where(u => u.Position != null && u.Position.Level > user.Position.Level);
+            }
                 
 
             if (!String.IsNullOrEmpty(search))
@@ -140,7 +147,7 @@ namespace time_off_management_app.Services
 
             var forms = users
                 .SelectMany(u => u.TimeOffForms)
-                .Where(f => f.DateTimeFrom.Year == year);
+                .Where(f => f.DateTimeFrom.Year >= year);
 
             if(status != null)
             {
@@ -150,6 +157,41 @@ namespace time_off_management_app.Services
             return forms.Select(f => f.ToTimeOffReviewDto()).ToList();
         }
 
+
+        public async Task<AppValidationResult> VerifyReviewRightsAsync(String userId, int formId, List<TimeOffReviewDto>? forms = null)
+        {
+            if(forms == null)
+            {
+                forms = await GetReviewFormsAsync(userId, ApplicationConstants.CurrentYear, null, null);
+            }
+
+
+            var form = forms.FirstOrDefault(f => f.Id.Equals(formId));
+            
+
+            if(form == null)
+            {
+                return new AppValidationResult
+                {
+                    Success = false,
+                    Reason = $"User doesn't have the right to review form {formId}"
+                };
+            }
+
+            if(form.Status != ApprovalStatus.Pending)
+            {
+                return new AppValidationResult
+                {
+                    Success = false,
+                    Reason = $"Form {formId} has already been reviewed"
+                };
+            }
+
+            return new AppValidationResult
+            {
+                Success = true
+            };
+        }
 
 
 

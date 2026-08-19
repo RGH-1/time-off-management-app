@@ -6,6 +6,7 @@ using time_off_management_app.Shared.DTOs.Forms;
 using time_off_management_app.Data;
 using time_off_management_app.Shared.Enums;
 using Microsoft.AspNetCore.Authorization;
+using time_off_management_app.Shared.Constants;
 
 namespace time_off_management_app.Controllers.V1
 {
@@ -93,7 +94,13 @@ namespace time_off_management_app.Controllers.V1
                 return NotFound();
             }
 
-            var forms = await _timeOffService.GetReviewFormsAsync(userId, year, search, status);
+            var canReviewAll = false;
+            if(User.HasClaim(Permissions.Type, Permissions.FormsReviewAll))
+            {
+                canReviewAll = true;
+            }
+
+            var forms = await _timeOffService.GetReviewFormsAsync(userId, year, search, status, canReviewAll);
 
             return Ok(forms);
         }
@@ -117,7 +124,19 @@ namespace time_off_management_app.Controllers.V1
                 return NotFound();
             }
 
-            //TODO: check if user can approve form. Return forbidden if not
+
+
+            if(!User.HasClaim(Permissions.Type, Permissions.FormsReviewAll))
+            {
+                var val = await _timeOffService.VerifyReviewRightsAsync(userId, id);
+
+                if (!val.Success)
+                {
+                    return Forbid(val.Reason!);
+                }
+            }
+
+            
 
             var success = await _timeOffService.ReviewForm(id, input.Note, ApprovalStatus.Approved);
 
@@ -147,7 +166,19 @@ namespace time_off_management_app.Controllers.V1
                 return NotFound();
             }
 
-            //TODO: check if user can deny form. Return forbidden if not
+
+
+            if (!User.HasClaim(Permissions.Type, Permissions.FormsReviewAll))
+            {
+                var val = await _timeOffService.VerifyReviewRightsAsync(userId, id);
+
+                if (!val.Success)
+                {
+                    return Forbid(val.Reason!);
+                }
+            }
+            
+
 
             var success = await _timeOffService.ReviewForm(id, input.Note, ApprovalStatus.Denied);
 
@@ -179,7 +210,33 @@ namespace time_off_management_app.Controllers.V1
                 return NotFound();
             }
 
-            //TODO: check if user can approve each form. Return Forbidden if not
+
+
+            if (!User.HasClaim(Permissions.Type, Permissions.FormsReviewAll))
+            {
+                var forms = await _timeOffService.GetReviewFormsAsync(userId, ApplicationConstants.CurrentYear, null, null);
+                var ids = forms.Select(f => f.Id).ToHashSet();
+
+                foreach (var form in input)
+                {
+                    if (form.FormId == null)
+                    {
+                        return BadRequest("Missing Id in one of the forms");
+                    }
+                    if (!ids.Contains((int)form.FormId!))
+                    {
+                        return Forbid($"User doesn't have the right to review form {form.FormId}");
+                    }
+                    var valres = await _timeOffService.VerifyReviewRightsAsync(userId, (int)form.FormId, forms);
+
+                    if (!valres.Success)
+                    {
+                        return Forbid(valres.Reason!);
+                    }
+                }
+            }
+
+
 
             var success = await _timeOffService.ReviewForms(input, ApprovalStatus.Approved);
 
@@ -209,7 +266,33 @@ namespace time_off_management_app.Controllers.V1
                 return NotFound();
             }
 
-            //TODO: check if user can approve each form. Return Forbidden if not
+
+
+            if (!User.HasClaim(Permissions.Type, Permissions.FormsReviewAll))
+            {
+                var forms = await _timeOffService.GetReviewFormsAsync(userId, ApplicationConstants.CurrentYear, null, null);
+                var ids = forms.Select(f => f.Id).ToHashSet();
+
+                foreach (var form in input)
+                {
+                    if (form.FormId == null)
+                    {
+                        return BadRequest("Missing Id in one of the forms");
+                    }
+                    if (!ids.Contains((int)form.FormId!))
+                    {
+                        return Forbid($"User doesn't have the right to review form {form.FormId}");
+                    }
+                    var valres = await _timeOffService.VerifyReviewRightsAsync(userId, (int)form.FormId, forms);
+
+                    if (!valres.Success)
+                    {
+                        return Forbid(valres.Reason!);
+                    }
+                }
+            }
+            
+
 
             var success = await _timeOffService.ReviewForms(input, ApprovalStatus.Denied);
 
