@@ -8,6 +8,7 @@ namespace time_off_management_app.Shared.DTOs.Forms
         public int Id { get; set; }
 
         public String UserId { get; set; }
+        public String FullName { get; set; }
 
         public DateTime SubmissionDate { get; set; }
         public DateTime DateTimeFrom { get; set; }

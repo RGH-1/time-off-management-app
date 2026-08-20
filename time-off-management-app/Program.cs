@@ -67,6 +67,7 @@ builder.Services.AddHttpClient("Api", client =>
 builder.Services.AddScoped<TimeOffService>();
 builder.Services.AddScoped<ReasonsService>();
 builder.Services.AddScoped<ApiKeyService>();
+builder.Services.AddScoped<ExternalUseFormService>();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {

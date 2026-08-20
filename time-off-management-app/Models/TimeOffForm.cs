@@ -45,6 +45,7 @@ namespace time_off_management_app.Models
             {
                 Id = this.Id,
                 UserId = this.UserId,
+                FullName = this.User.FullName,
                 SubmissionDate = this.SubmissionDate,
                 DateTimeFrom = this.DateTimeFrom,
                 DateTimeTo = this.DateTimeTo,
