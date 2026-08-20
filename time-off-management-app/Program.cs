@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 using time_off_management_app.Authentication;
 using time_off_management_app.Components;
 using time_off_management_app.Components.Account;
@@ -97,6 +98,10 @@ if (!string.IsNullOrEmpty(ticketStore) && !ticketStore.Equals("Default", StringC
 
 
 builder.Services.AddControllers();
+    //.AddJsonOptions(options =>
+    //{
+    //    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    //});
 
 var app = builder.Build();
 

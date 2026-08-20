@@ -18,6 +18,29 @@ namespace time_off_management_app.Services
         }
 
 
+        public async Task<FormVerificationDto> VerifyRequestStatusAsync(FormVerificationDto data)
+        {
+            var form = await _context.TimeOffForm
+                .Include(f => f.User)
+                .Where(f => f.User.FullName.Contains(data.Name))
+                .Where(f => f.DateTimeFrom <= data.Date && f.DateTimeTo >= data.Date)
+                .FirstOrDefaultAsync();
+
+
+            data.Status = form == null ?
+                VerificationStatus.NotRequested :
+                form.Status switch
+                {
+                    ApprovalStatus.Approved => VerificationStatus.Approved,
+                    ApprovalStatus.Pending => VerificationStatus.Pending,
+                    ApprovalStatus.Denied => VerificationStatus.Denied,
+                    _ => null
+                };
+
+            return data;
+        }
+
+
         public async Task<MostRequestedDayDto?> GetMostRequestedDayAsync(int year)
         {
             var start = new DateTime(year, 1, 1);

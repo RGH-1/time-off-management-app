@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using time_off_management_app.Services;
 using time_off_management_app.Shared.Constants;
+using time_off_management_app.Shared.DTOs.External;
 using time_off_management_app.Shared.Enums;
 
 namespace time_off_management_app.Controllers.V1
@@ -96,6 +97,27 @@ namespace time_off_management_app.Controllers.V1
             }
             return Ok(day);
         }
+
+
+
+        /// <summary>
+        /// Verify if a list of users have submitted a form on specific dates
+        /// </summary>
+        /// <param name="list">List of Names/Dates</param>
+        /// <returns>List of the Names, Dates, and Status</returns>
+        /// <response code="200">Returns List of FormVerificationDto with statuses included</response>
+        [HttpPost("verify")]
+        public async Task<IActionResult> VerifyRequestList([FromBody] List<FormVerificationDto> list)
+        {
+            List<FormVerificationDto> verifiedList = new();
+            foreach(var request in list)
+            {
+                var verifiedReq = await _externalUseFormService.VerifyRequestStatusAsync(request);
+                verifiedList.Add(verifiedReq);
+            }
+
+            return Ok(verifiedList);
+        }
     }
 }
 
@@ -123,5 +145,9 @@ namespace time_off_management_app.Controllers.V1
  * 
  * - api/v1/ext/most_day/{year} : Returns the most requested day in the specified year and the number of requests.
  *   - Shared.DTOs.External.MostRequestedDayDto
- *     
+ * 
+ * 
+ * - api/v1/ext/verify : POST request containing names and dates to verify if a user submitted forms that day. Returns the same list with statuses
+ *   - Shared.DTOs.External.FormVerificationDto
+ *     - Shared.Enums.VerificationStatus
 */
