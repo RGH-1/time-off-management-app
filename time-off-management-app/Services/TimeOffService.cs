@@ -195,7 +195,7 @@ namespace time_off_management_app.Services
 
 
 
-        public async Task<bool> ReviewForm(int formId, String? Note, ApprovalStatus status)
+        public async Task<bool> ReviewForm(int formId, String? Note, ApprovalStatus status, ApplicationUser user)
         {
             var form = await _context.TimeOffForm.FirstOrDefaultAsync(f => f.Id == formId);
 
@@ -206,32 +206,34 @@ namespace time_off_management_app.Services
 
             form.Note = Note;
             form.Status = status;
+            form.ApprovedBy = user;
 
             await _context.SaveChangesAsync();
             return true;
         }
 
-        public async Task<bool> ReviewForms(List<ReviewFormDto> forms, ApprovalStatus status)
-        {
-            foreach(var form in forms)
-            {
-                if(form.FormId == null)
-                {
-                    return false;
-                }
-                var toSave = await _context.TimeOffForm.FirstOrDefaultAsync(f => f.Id == form.FormId);
+        //public async Task<bool> ReviewForms(List<ReviewFormDto> forms, ApprovalStatus status, ApplicationUser user)
+        //{
+        //    foreach(var form in forms)
+        //    {
+        //        if(form.FormId == null)
+        //        {
+        //            return false;
+        //        }
+        //        var toSave = await _context.TimeOffForm.FirstOrDefaultAsync(f => f.Id == form.FormId);
 
-                if(toSave == null || toSave.Status != ApprovalStatus.Pending)
-                {
-                    return false;
-                }
+        //        if(toSave == null || toSave.Status != ApprovalStatus.Pending)
+        //        {
+        //            return false;
+        //        }
 
-                toSave.Note = form.Note;
-                toSave.Status = status;
-            }
+        //        toSave.Note = form.Note;
+        //        toSave.Status = status;
+        //        toSave.ApprovedBy = user;
+        //    }
 
-            await _context.SaveChangesAsync();
-            return true;
-        }
+        //    await _context.SaveChangesAsync();
+        //    return true;
+        //}
     }
 }

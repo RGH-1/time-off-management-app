@@ -138,7 +138,7 @@ namespace time_off_management_app.Controllers.V1
 
             
 
-            var success = await _timeOffService.ReviewForm(id, input.Note, ApprovalStatus.Approved);
+            var success = await _timeOffService.ReviewForm(id, input.Note, ApprovalStatus.Approved, user);
 
             if(success)
             {
@@ -180,7 +180,7 @@ namespace time_off_management_app.Controllers.V1
             
 
 
-            var success = await _timeOffService.ReviewForm(id, input.Note, ApprovalStatus.Denied);
+            var success = await _timeOffService.ReviewForm(id, input.Note, ApprovalStatus.Denied, user);
 
             if (success)
             {
@@ -238,7 +238,7 @@ namespace time_off_management_app.Controllers.V1
 
 
 
-        //    var success = await _timeOffService.ReviewForms(input, ApprovalStatus.Approved);
+        //    var success = await _timeOffService.ReviewForms(input, ApprovalStatus.Approved, user);
 
         //    if(success)
         //    {
@@ -294,7 +294,7 @@ namespace time_off_management_app.Controllers.V1
             
 
 
-        //    var success = await _timeOffService.ReviewForms(input, ApprovalStatus.Denied);
+        //    var success = await _timeOffService.ReviewForms(input, ApprovalStatus.Denied, user);
 
         //    if (success)
         //    {
