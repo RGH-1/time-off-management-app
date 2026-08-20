@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using time_off_management_app.Data;
 using time_off_management_app.Models;
+using time_off_management_app.Shared.DTOs.External;
 using time_off_management_app.Shared.DTOs.Forms;
 using time_off_management_app.Shared.Enums;
 
@@ -15,6 +16,47 @@ namespace time_off_management_app.Services
         {
             _context = context;
         }
+
+
+        public async Task<MostRequestedDayDto?> GetMostRequestedDayAsync(int year)
+        {
+            var start = new DateTime(year, 1, 1);
+            var end = start.AddYears(1);
+
+            var forms = await _context.TimeOffForm
+                .Where(f => f.DateTimeFrom < end && f.DateTimeTo >= start)
+                .Select(f => new
+                {
+                    DateTimeFrom = f.DateTimeFrom < start ? start.Date : f.DateTimeFrom.Date,
+                    DateTimeTo = f.DateTimeTo >= end ? end.AddDays(-1).Date : f.DateTimeTo.Date,
+                }).ToListAsync();
+
+            var dayCount = new Dictionary<DateTime, int>();
+
+            foreach(var form in forms)
+            {
+                for(var date = form.DateTimeFrom; date <= form.DateTimeTo; date = date.AddDays(1))
+                {
+                    dayCount.TryGetValue(date, out var count);
+                    dayCount[date] = count + 1;
+                }
+            }
+
+            if(dayCount.Count == 0)
+            {
+                return null;
+            }
+
+            var mostRequested = dayCount.MaxBy(x => x.Value);
+
+            return new MostRequestedDayDto
+            {
+                Day = mostRequested.Key,
+                NumberOfRequests = mostRequested.Value
+            };
+        }
+
+
         public async Task<List<TimeOffFormDto>?> GetExtFormsAsync(String? fullName, DateTime? from, DateTime? to, DateTime? date)
         {
             var forms = _context.TimeOffForm
